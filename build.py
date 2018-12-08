@@ -6,6 +6,7 @@ import os
 
 def addFiles(dirPath):
     lines = []
+    dirPath = "src/{}".format(dirPath)
     for name in os.listdir(dirPath):
         path = '{0}/{1}'.format(dirPath, name)
         if sys.argv[-1] == '--prod':
@@ -23,8 +24,8 @@ def addFiles(dirPath):
 
 
 def Main():
-    if not os.path.exists('install.lua'):
-        raise Exception("install.lua missing")
+    if not os.path.exists('src/install.lua'):
+        raise Exception("src/install.lua missing")
 
     if not os.path.exists('dist'):
         os.makedirs('dist')
@@ -35,7 +36,7 @@ def Main():
     lines = ["term.write('Installing...')\n"] + addFiles('lib') + \
         addFiles('factory') + addFiles('mine') + addFiles('wrist') + addFiles('car')
 
-    with open('install.lua', 'r') as f:
+    with open('src/install.lua', 'r') as f:
         lines = lines + list(f)
 
     with open('build/install.lua', 'w') as f:
