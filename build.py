@@ -33,7 +33,7 @@ def Main():
         os.makedirs('build')
 
     lines = ["term.write('Installing...')\n"] + addFiles('lib') + \
-        addFiles('factory') + addFiles('mine') + addFiles('wrist')
+        addFiles('factory') + addFiles('mine') + addFiles('wrist') + addFiles('car')
 
     with open('install.lua', 'r') as f:
         lines = lines + list(f)

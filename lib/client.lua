@@ -1,5 +1,6 @@
 fuzzel = os.require('/lib/fuzzel.lua')
 registration = {}
+screenText = ""
 local client = {}
 function client.command(cmd, fn, autoCompleteFn, help)
     registration[cmd] = {
@@ -24,21 +25,20 @@ function client.autoComplete(args, opt)
     if #values == 1 then
         input = getCmd(input).." "..values[1]
     elseif #values > 0 then
-        term.write("  "..table.concat(values, ", "))
-        screenText = term.getOutput()
+        client.write("  "..table.concat(values, ", "))
     end
 end
-function client.start(client)
+function client.resetDisplay()
+    -- Remove trailing newline
+    screenText = string.sub(screenText, 0, -2)
+    term.clear()
+    term.setOutput(screenText)
+    term.setInput(input)
+end
+function client.start(name)
     inputEnable = true
     input = "> "
-    screenText = "Welcome to "..client.." "
-    function resetDisplay()
-        -- Remove trailing newline
-        screenText = string.sub(screenText, 0, -2)
-        term.clear()
-        term.setOutput(screenText)
-        term.setInput(input)
-    end
+    screenText = "Welcome to "..name.." "
     function getUserInput(input)
         return string.sub(input, 3, -2)
     end
@@ -76,11 +76,11 @@ function client.start(client)
         end
         if #term.getOutput() < #screenText then
             inputEnable = false
-            resetDisplay()
+            client.resetDisplay()
             inputEnable = true
             return
         end
-        screenText = term.getOutput()
+        client.saveScreen()
         character = input:sub(#input)
         if character == "\n" then
             -- Remove the newline from the input
@@ -98,10 +98,10 @@ function client.start(client)
                     term.write("Error: Unknown command '"..info[1].."'")
                 end
             end
-            screenText = term.getOutput()
+            client.saveScreen()
             -- Reset the input
             input = "> "
-            resetDisplay()
+            client.resetDisplay()
         elseif character == "`" then
             -- Autocomplete input
             inputEnable = false
@@ -127,8 +127,7 @@ function client.start(client)
                 if #values == 1 then
                     input = values[1].." "
                 elseif #values > 0 then
-                    term.write("  "..table.concat(values, ", "))
-                    screenText = term.getOutput()
+                    client.write("  "..table.concat(values, ", "))
                 end
             elseif registration[info[1]] ~= nil then
                 local reg = registration[info[1]]
@@ -137,14 +136,25 @@ function client.start(client)
                     term.write('Error: '..err)
                 end
             end
-            screenText = term.getOutput()
+            client.saveScreen()
             input = "> "..input
-            resetDisplay()
+            client.resetDisplay()
             inputEnable = true
         end
     end)
     term.clear()
-    os.wait(resetDisplay, 0.1)
+    os.wait(client.resetDisplay, 0.1)
+end
+function client.write(text)
+    term.write(text)
+    client.saveScreen()
+end
+function client.saveScreen()
+    screenText = term.getOutput()
+end
+function client.clearScreen()
+    term.clear()
+    client.saveScreen()
 end
 client.command("help", function(args)
     for k,v in pairs(registration) do
