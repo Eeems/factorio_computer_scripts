@@ -142,12 +142,29 @@ function client.start(name)
             inputEnable = true
         end
     end)
+    wlan.on('event', function(from_label, event, ...)
+        if event == "term.write" then
+            for k, v in pairs({...}) do
+                client.write('['..from_label..'] '..v)
+            end
+        end
+    end)
     term.clear()
     os.wait(client.resetDisplay, 0.1)
 end
 function client.write(text)
     term.write(text)
     client.saveScreen()
+end
+function client.emit(to, event, ...)
+    if wlan ~= nil then
+        wlan.emit(to, 'event', event, ...)
+    end
+end
+function client.broadcast(event, ...)
+    if wlan ~= nil then
+        wlan.broadcast('event', event, ...)
+    end
 end
 function client.saveScreen()
     screenText = term.getOutput()

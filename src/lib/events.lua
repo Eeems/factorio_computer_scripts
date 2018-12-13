@@ -1,6 +1,10 @@
-os.require('class.lua')
+os.require('/lib/class.lua')
 EventManager = class(function(me)
     me._handles = {}
+end)
+Event = class(function(me, name, args)
+    me.name = name
+    me.args = args
 end)
 
 function EventManager:on(event, fn)
@@ -18,10 +22,11 @@ function EventManager:un(event, fn)
         end
     end
 end
-function EventManager:emit(event, ..args)
+function EventManager:emit(event, ...)
+    local args = {...}
     if me._handles[event] ~= nil then
-        for k, fn in pairs(me._handles[event])
-            local success, err = os.pcall(fn, ..args)
+        for k, fn in pairs(me._handles[event]) do
+            local success, err = os.pcall(fn, Event(event, args))
             if success == false then
                 if event == "error" then
                     term.write('Error: '..err)

@@ -1,4 +1,15 @@
 local server = os.require('/lib/server.lua')
-server.start()
 local client = os.require('/lib/client.lua')
+server.on('error', function(e)
+    for k, v in pairs(e.args) do
+        client.write(v)
+    end
+end)
+server.on('echo', function(e)
+    e:emit('term.write', unpack(e.args))
+end)
+server.start()
+client.command("echo", function(args)
+    client.broadcast('echo', unpack(args))
+end, function(args) return end, "Get the status of things")
 client.start("factory client 1.0")

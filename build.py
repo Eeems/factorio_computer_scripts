@@ -15,10 +15,18 @@ def addFiles(dirPath):
                 shell=True)
 
         else:
+            try:
+                subprocess.check_output([
+                    r'C:\Users\Eeems\AppData\Roaming\npm\luaparse', '-f', path],
+                    shell=True)
+            except subprocess.CalledProcessError as e:
+                raise Exception(e.output)
+
             with open(path, 'r') as f:
                 lua = f.read()
 
-        lines.append("disk.writeFile('/{0}', {1})\n".format(path, json.dumps(lua)))
+        lines.append(
+            "disk.writeFile('/{0}', {1})\n".format(path[4:], json.dumps(lua)))
 
     return lines
 
