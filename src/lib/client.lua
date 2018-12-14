@@ -1,7 +1,7 @@
 fuzzel = os.require('/lib/fuzzel.lua')
 registration = {}
 screenText = ""
-local client = {}
+client = {}
 function client.command(cmd, fn, autoCompleteFn, help)
     registration[cmd] = {
         cmd=cmd,
@@ -131,9 +131,11 @@ function client.start(name)
                 end
             elseif registration[info[1]] ~= nil then
                 local reg = registration[info[1]]
-                local success, err = os.pcall(reg["autoCompleteFn"], info[2])
-                if success == false then
-                    term.write('Error: '..err)
+                if type(reg["autoCompleteFn"]) == "function" then
+                    local success, err = os.pcall(reg["autoCompleteFn"], info[2])
+                    if success == false then
+                        term.write('Error: '..err)
+                    end
                 end
             end
             client.saveScreen()
@@ -142,7 +144,8 @@ function client.start(name)
             inputEnable = true
         end
     end)
-    wlan.on('event', function(from_label, event, ...)
+    wlan.on('term.write', function(...)
+        client.write('event: ['..from_label..'] ('..event..') '..table.concat({...}, ' '))
         if event == "term.write" then
             for k, v in pairs({...}) do
                 client.write('['..from_label..'] '..v)
@@ -155,16 +158,6 @@ end
 function client.write(text)
     term.write(text)
     client.saveScreen()
-end
-function client.emit(to, event, ...)
-    if wlan ~= nil then
-        wlan.emit(to, 'event', event, ...)
-    end
-end
-function client.broadcast(event, ...)
-    if wlan ~= nil then
-        wlan.broadcast('event', event, ...)
-    end
 end
 function client.saveScreen()
     screenText = term.getOutput()

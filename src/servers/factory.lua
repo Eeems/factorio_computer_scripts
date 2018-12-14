@@ -1,0 +1,16 @@
+server = os.require('/lib/server.lua')
+client = os.require('/lib/client.lua')
+server.on('error', function(e)
+    for k, v in pairs(e.args) do
+        client.write(v)
+    end
+end)
+server.on('echo', function(e)
+    wlan.emit(e.from, 'term.write', unpack(e.args))
+end)
+server.start()
+client.command("echo", function(args)
+    table.insert(args, 1, 'echo')
+    server.broadcast(unpack(args))
+end, nil, "Get the status of things")
+client.start("factory client 1.0")
